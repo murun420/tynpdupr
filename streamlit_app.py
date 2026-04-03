@@ -1,91 +1,134 @@
+import streamlit as st
 import pandas as pd
 import datetime
 
-# 設定網頁標題與圖示 (使用表情符號作為臨時圖示)
-st.set_page_config(page_title="TNYP DUPR 助手", page_icon="🏓", layout="centered")
+# --- 必須是第一個 Streamlit 指令 ---
+st.set_page_config(
+    page_title="TNYP DUPR 多場地助手", 
+    page_icon="🏓", 
+    layout="wide"
+)
 
-# --- 賽程數據 (保持不變) ---
-SCHEDULE_8 = [("A", "B", "C", "D"), ("E", "F", "G", "H"), ("A", "E", "B", "F"), ("C", "G", "D", "H"), ("B", "D", "F", "H"), ("A", "C", "E", "G"), ("E", "H", "A", "D"), ("F", "G", "B", "C"), ("A", "F", "C", "H"), ("B", "E", "D", "G"), ("B", "H", "D", "F"), ("A", "G", "C", "E"), ("A", "H", "D", "E"), ("C", "F", "B", "G"), ("A", "B", "E", "F"), ("G", "H", "C", "D"), ("E", "G", "B", "D"), ("F", "H", "A", "C"), ("A", "D", "F", "G")]
-SCHEDULE_7 = [("A", "B", "C", "D"), ("E", "F", "A", "G"), ("B", "C", "D", "E"), ("A", "C", "F", "G"), ("A", "F", "B", "E"), ("B", "D", "E", "G"), ("C", "F", "D", "G"), ("A", "E", "B", "F"), ("A", "D", "C", "G"), ("C", "E", "B", "G"), ("E", "G", "A", "F"), ("B", "C", "D", "F"), ("A", "D", "B", "E"), ("C", "F", "E", "G"), ("A", "B", "E", "F"), ("A", "G", "C", "D"), ("D", "E", "C", "G"), ("A", "C", "D", "F"), ("A", "F", "B", "E")]
+# ==========================================
+# 賽程邏輯定義 (嚴格對照 PDF)
+# ==========================================
+SCHEDULE_8 = [
+    ("A", "B", "C", "D"), ("E", "F", "G", "H"), ("A", "E", "B", "F"), ("C", "G", "D", "H"),
+    ("B", "D", "F", "H"), ("A", "C", "E", "G"), ("E", "H", "A", "D"), ("F", "G", "B", "C"),
+    ("A", "F", "C", "H"), ("B", "E", "D", "G"), ("B", "H", "D", "F"), ("A", "G", "C", "E"),
+    ("A", "H", "D", "E"), ("C", "F", "B", "G"), ("A", "B", "E", "F"), ("G", "H", "C", "D"),
+    ("E", "G", "B", "D"), ("F", "H", "A", "C"), ("A", "D", "F", "G")
+]
 
-# 自定義 CSS 讓介面更像匹克球風格
+SCHEDULE_7 = [
+    ("A", "B", "C", "D"), ("E", "F", "A", "G"), ("B", "C", "D", "E"), ("A", "C", "F", "G"),
+    ("A", "F", "B", "E"), ("B", "D", "E", "G"), ("C", "F", "D", "G"), ("A", "E", "B", "F"),
+    ("A", "D", "C", "G"), ("C", "E", "B", "G"), ("E", "G", "A", "F"), ("B", "C", "D", "F"),
+    ("A", "D", "B", "E"), ("C", "F", "B", "G"), ("A", "B", "E", "F"), ("G", "D", "C", "E"),
+    ("E", "G", "B", "D"), ("F", "A", "C", "G"), ("A", "D", "F", "G")
+]
+
+# 自定義 CSS (匹克球配色)
 st.markdown("""
     <style>
-    .stApp { background-color: #fdfdfd; }
-    .stButton>button { background-color: #99cc00; color: white; border-radius: 10px; border: none; }
-    .stDownloadButton>button { background-color: #007bff; color: white; }
+    .main { background-color: #f9f9f9; }
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [data-baseweb="tab"] {
+        background-color: #f0f2f6; border-radius: 8px 8px 0px 0px; padding: 10px 15px;
+    }
+    .stTabs [aria-selected="true"] { background-color: #99cc00 !important; color: white !important; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🏓 TNYP DUPR 賽事錄入")
-st.caption("專為 7 人/ 8 人循環賽設計的錄入系統")
+st.title("🏓 TNYP DUPR 多場地管理系統")
 
-# 選擇模式
-mode = st.segmented_control("選擇比賽人數", ["8人制", "7人制"], default="8人制")
-p_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] if mode == "8人制" else ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-sch = SCHEDULE_8 if mode == "8人制" else SCHEDULE_7
-
-# --- 1. 基本資訊 ---
-with st.container(border=True):
-    event_name = st.text_input("🏆 活動名稱", value=f"TNYP {mode} Match")
-    match_date = st.date_input("📅 比賽日期", datetime.date.today())
-
-# --- 2. 球員名單 ---
-st.subheader("👤 球員名單設定")
-player_data = {}
-# 手機版建議使用 2 列顯示
-cols = st.columns(2)
-for i, label in enumerate(p_labels):
-    with cols[i % 2]:
-        name = st.text_input(f"球員 {label} 姓名", key=f"n_{label}")
-        did = st.text_input(f"DUPR ID", key=f"id_{label}", help="請務必輸入正確 ID")
-        player_data[label] = {"n": name, "id": did}
-
-st.divider()
-
-# --- 第三部分：比分錄入 ---
-st.markdown("### 🏆 第三步：依序錄入比分")
-results = []
-for idx, (a1, a2, b1, b2) in enumerate(sch, 1):
-    with st.container():
-        st.markdown(f"**場次 {idx:02d}**")
-        c1, c2, c3, c4, c5 = st.columns([2, 1, 1, 1, 2])
-        with c1:
-            st.markdown(f"<span style='color:#0056b3'>**{a1}/{a2}**</span>", unsafe_allow_html=True)
-        with c2:
-            s1 = st.text_input("A分", key=f"s1_{idx}", label_visibility="collapsed")
-        with c3:
-            st.write("vs")
-        with c4:
-            s2 = st.text_input("B分", key=f"s2_{idx}", label_visibility="collapsed")
-        with c5:
-            st.markdown(f"<span style='color:#d32f2f'>**{b1}/{b2}**</span>", unsafe_allow_html=True)
-        
-        if s1 and s2:
-            results.append([
-                'D', 'RALLY', event_name, match_date.strftime("%Y-%m-%d"),
-                player_data[a1]['n'], player_data[a1]['id'], player_data[a2]['n'], player_data[a2]['id'],
-                player_data[b1]['n'], player_data[b1]['id'], player_data[b2]['n'], player_data[b2]['id'],
-                s1, s2
-            ])
+# --- 側邊欄設定 ---
+with st.sidebar:
+    st.header("⚙️ 賽事全域設定")
+    event_main = st.text_input("基本活動名稱", value="TNYP Club Match")
+    global_date = st.date_input("比賽日期", datetime.date.today())
+    court_count = st.number_input("場地數量", min_value=1, max_value=6, value=2)
     st.divider()
+    st.info("💡 每個場地可獨立設定 7人或 8人制。")
 
-# --- 第四部分：匯出下載 ---
-if results:
-    df = pd.DataFrame(results, columns=[
-        'matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId',
-        'playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1'
-    ])
-    
-    # 轉成 CSV 字串
-    csv_data = df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
-    
+# 建立場地頁籤
+tab_list = st.tabs([f"🏟️ 場地 {i+1}" for i in range(court_count)])
+
+all_data_for_export = []
+
+for i in range(court_count):
+    court_id = i + 1
+    with tab_list[i]:
+        st.subheader(f"場地 {court_id} 配置")
+        
+        # 1. 模式切換
+        mode = st.segmented_control(
+            f"場地 {court_id} 賽制", 
+            ["8人制", "7人制"], 
+            default="8人制", 
+            key=f"mode_select_{court_id}"
+        )
+        
+        p_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] if mode == "8人制" else ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        sch = SCHEDULE_8 if mode == "8人制" else SCHEDULE_7
+        
+        # 2. 球員名單輸入
+        with st.expander(f"👤 球員名單 (場地 {court_id})", expanded=True):
+            p_data = {}
+            col1, col2 = st.columns(2)
+            for idx, label in enumerate(p_labels):
+                target_col = col1 if idx % 2 == 0 else col2
+                with target_col:
+                    n = st.text_input(f"球員 {label} 姓名", key=f"n_{court_id}_{label}", placeholder="姓名")
+                    did = st.text_input(f"ID", key=f"id_{court_id}_{label}", placeholder="DUPR ID", label_visibility="collapsed")
+                    p_data[label] = {"n": n, "id": did}
+
+        # 3. 比分錄入
+        st.subheader(f"🎯 比分錄入 (共 {len(sch)} 場)")
+        court_matches = []
+        
+        for g_idx, (a1, a2, b1, b2) in enumerate(sch, 1):
+            with st.container(border=True):
+                # 手機版佈局優化
+                c1, c2, mid, c3, c4 = st.columns([2, 1, 0.5, 1, 2])
+                with c1: st.markdown(f"**{a1}/{a2}**")
+                with c2: s1 = st.text_input("A分", key=f"sA_{court_id}_{g_idx}", label_visibility="collapsed")
+                with mid: st.write("-")
+                with c3: s2 = st.text_input("B分", key=f"sB_{court_id}_{g_idx}", label_visibility="collapsed")
+                with c4: st.markdown(f"**{b1}/{b2}**")
+                
+                # 資料處理
+                if s1.strip() and s2.strip():
+                    match_row = [
+                        'D', 'RALLY', f"{event_main}-C{court_id}", global_date.strftime("%Y-%m-%d"),
+                        p_data[a1]['n'], p_data[a1]['id'], p_data[a2]['n'], p_data[a2]['id'],
+                        p_data[b1]['n'], p_data[b1]['id'], p_data[b2]['n'], p_data[b2]['id'],
+                        s1, s2
+                    ]
+                    court_matches.append(match_row)
+                    all_data_for_export.append(match_row)
+
+        # 單獨場地匯出
+        if court_matches:
+            df_court = pd.DataFrame(court_matches, columns=['matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId','playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1'])
+            st.download_button(
+                f"📥 下載場地 {court_id} CSV", 
+                df_court.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig'),
+                f"TNYP_C{court_id}.csv", 
+                "text/csv"
+            )
+
+# --- 總結算區 ---
+st.divider()
+if all_data_for_export:
+    st.subheader("📦 全場地合併匯出")
+    st.write(f"目前累計已錄入 {len(all_data_for_export)} 場比賽資料。")
+    df_all = pd.DataFrame(all_data_for_export, columns=['matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId','playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1'])
     st.download_button(
-        label="📥 下載 DUPR 匯入檔案 (CSV)",
-        data=csv_data,
-        file_name=f"DUPR_{mode}_{datetime.datetime.now().strftime('%m%d_%H%M')}.csv",
-        mime="text/csv",
+        "🔥 下載所有場地合併 CSV (一次上傳 DUPR)",
+        df_all.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig'),
+        f"TNYP_TOTAL_{datetime.datetime.now().strftime('%m%d_%H%M')}.csv",
+        "text/csv",
+        type="primary",
         use_container_width=True
     )
-else:
-    st.info("請在上方輸入至少一場比賽的分數，即可產生下載按鈕。")
