@@ -44,33 +44,49 @@ for i, label in enumerate(p_labels):
 
 st.divider()
 
-# --- 3. 分數錄入 ---
-st.subheader("🎯 比分錄入 (19場)")
+# --- 第三部分：比分錄入 ---
+st.markdown("### 🏆 第三步：依序錄入比分")
 results = []
 for idx, (a1, a2, b1, b2) in enumerate(sch, 1):
-    with st.expander(f"第 {idx:02d} 場: {a1}/{a2} vs {b1}/{b2}", expanded=False):
-        c1, c2 = st.columns(2)
+    with st.container():
+        st.markdown(f"**場次 {idx:02d}**")
+        c1, c2, c3, c4, c5 = st.columns([2, 1, 1, 1, 2])
         with c1:
-            s1 = st.number_input(f"{a1}/{a2} 分數", min_value=0, max_value=30, step=1, key=f"s1_{idx}", value=0)
+            st.markdown(f"<span style='color:#0056b3'>**{a1}/{a2}**</span>", unsafe_allow_html=True)
         with c2:
-            s2 = st.number_input(f"{b1}/{b2} 分數", min_value=0, max_value=30, step=1, key=f"s2_{idx}", value=0)
+            s1 = st.text_input("A分", key=f"s1_{idx}", label_visibility="collapsed")
+        with c3:
+            st.write("vs")
+        with c4:
+            s2 = st.text_input("B分", key=f"s2_{idx}", label_visibility="collapsed")
+        with c5:
+            st.markdown(f"<span style='color:#d32f2f'>**{b1}/{b2}**</span>", unsafe_allow_html=True)
         
-        # 只有當分數不全為 0 時才記錄
-        if s1 != 0 or s2 != 0:
+        if s1 and s2:
             results.append([
                 'D', 'RALLY', event_name, match_date.strftime("%Y-%m-%d"),
                 player_data[a1]['n'], player_data[a1]['id'], player_data[a2]['n'], player_data[a2]['id'],
                 player_data[b1]['n'], player_data[b1]['id'], player_data[b2]['n'], player_data[b2]['id'],
                 s1, s2
             ])
+    st.divider()
 
-# --- 4. 匯出 ---
+# --- 第四部分：匯出下載 ---
 if results:
     df = pd.DataFrame(results, columns=[
         'matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId',
         'playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1'
     ])
+    
+    # 轉成 CSV 字串
     csv_data = df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
-    st.download_button("💾 下載 DUPR 檔案 (CSV)", csv_data, f"TNYP_{mode}.csv", "text/csv")
+    
+    st.download_button(
+        label="📥 下載 DUPR 匯入檔案 (CSV)",
+        data=csv_data,
+        file_name=f"DUPR_{mode}_{datetime.datetime.now().strftime('%m%d_%H%M')}.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 else:
-    st.warning("請填寫至少一場比賽分數以產生檔案。")
+    st.info("請在上方輸入至少一場比賽的分數，即可產生下載按鈕。")
