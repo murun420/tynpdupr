@@ -2,10 +2,12 @@ import streamlit as st
 import pandas as pd
 import datetime
 
-# 必須是第一個指令
+# 1. 必須是第一個指令
 st.set_page_config(page_title="TNYP DUPR 助手 Pro", page_icon="🏓", layout="wide")
 
-# --- 賽程定義 (保持不變) ---
+# ==========================================
+# 賽程邏輯定義 (嚴格對照 PDF)
+# ==========================================
 SCHEDULE_8 = [("A", "B", "C", "D"), ("E", "F", "G", "H"), ("A", "E", "B", "F"), ("C", "G", "D", "H"), ("B", "D", "F", "H"), ("A", "C", "E", "G"), ("A", "D", "E", "H"), ("B", "C", "F", "G"), ("A", "F", "C", "H"), ("B", "E","D", "G"), ("B", "H","D", "F"), ("A", "G", "C", "E"), ("A", "H", "D", "E"), ("B","G","C","F"), ("A", "B", "E", "F"), ("G", "H", "C", "D"), ("E", "G", "B", "D"), ("F", "H", "A", "C"), ("A", "D", "F", "G")]
 SCHEDULE_7 = [("A", "B", "C", "D"), ("E", "F", "A", "G"), ("B", "C", "D", "E"), ("A", "C", "F", "G"), ("A", "F", "B", "E"), ("B", "D", "E", "G"), ("C", "F", "D", "G"), ("A", "E", "B", "F"), ("A", "D", "C", "G"), ("B", "G","C", "E"), ("A", "F","E", "G"), ("D", "F", "B", "C"), ("A", "D", "B", "E"), ("E","G","C","F"), ("A", "B", "E", "F"), ("G", "D", "C", "E"), ("E", "G", "B", "D"), ("F", "A", "C", "G"), ("A", "D", "F", "G")]
 
@@ -46,28 +48,27 @@ for i in range(court_count):
             cols[4].write(f"**{b1}/{b2}**")
             
             if s1.strip() and s2.strip():
-                # 注意：這裡補齊了所有 Game2-Game5 欄位為空字串
                 all_results.append({
-                    'matchType': 'D',
-                    'scoreType': 'RALLY',
+                    'matchType': 'D', 'scoreType': 'RALLY',
                     'event': f"{event_main}-C{cid}",
-                    'date': global_date.strftime("%m/%d/%Y"), # 採用 DUPR 最愛的 MM/DD/YYYY
+                    'date': global_date.strftime("%m/%d/%Y"),
                     'playerA1': p_data[a1]['n'], 'playerA1DuprId': p_data[a1]['id'],
                     'playerA2': p_data[a2]['n'], 'playerA2DuprId': p_data[a2]['id'],
                     'playerB1': p_data[b1]['n'], 'playerB1DuprId': p_data[b1]['id'],
                     'playerB2': p_data[b2]['n'], 'playerB2DuprId': p_data[b2]['id'],
                     'teamAGame1': s1, 'teamBGame1': s2,
-                    'teamAGame2': '', 'teamBGame2': '',
-                    'teamAGame3': '', 'teamBGame3': '',
-                    'teamAGame4': '', 'teamBGame4': '',
-                    'teamAGame5': '', 'teamBGame5': ''
+                    'teamAGame2': '', 'teamBGame2': '', 'teamAGame3': '', 'teamBGame3': '',
+                    'teamAGame4': '', 'teamBGame4': '', 'teamAGame5': '', 'teamBGame5': ''
                 })
 
-st.divider()
-
 if all_results:
+    st.divider()
     df = pd.DataFrame(all_results)
-    # 再次確認欄位順序與空白清理
+    
+    # 修正重點 1: 使用 map 代替 applymap 以適應新版 Pandas
+    df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
+    
+    # 修正重點 2: 確保所有 DUPR 要求的 22 個欄位都存在且順序正確
     columns_order = [
         'matchType','scoreType','event','date',
         'playerA1','playerA1DuprId','playerA2','playerA2DuprId',
@@ -75,15 +76,14 @@ if all_results:
         'teamAGame1','teamBGame1','teamAGame2','teamBGame2',
         'teamAGame3','teamBGame3','teamAGame4','teamBGame4','teamAGame5','teamBGame5'
     ]
-    df = df[columns_order]
-    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df = df.reindex(columns=columns_order).fillna('')
 
-    # 匯出 CSV (不使用 utf-8-sig，改用純 utf-8 以符合 DUPR 舊式系統)
-    csv = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+    # 修正重點 3: 使用標準 UTF-8 並移除 BOM 標頭，確保 DUPR 系統能正確解析標題列
+    csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
     
     st.download_button(
-        label="🚀 下載 DUPR 專用 CSV (已補齊 5 局欄位)",
-        data=csv,
+        label="🚀 下載 DUPR 專用 CSV (相容新版 Pandas)",
+        data=csv_bytes,
         file_name=f"DUPR_FINAL_{datetime.datetime.now().strftime('%m%d')}.csv",
         mime="text/csv",
         type="primary",
