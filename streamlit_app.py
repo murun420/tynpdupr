@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 
-# 1. 必須是第一個指令
+# 1. 設置頁面配置
 st.set_page_config(page_title="TNYP DUPR 助手 Pro", page_icon="🏓", layout="wide")
 
 # ==========================================
@@ -16,11 +16,13 @@ st.title("🏓 TNYP DUPR 專業錄入系統")
 with st.sidebar:
     st.header("⚙️ 設定")
     event_main = st.text_input("活動名稱", value="TNYP Club Match")
+    # 確保日期選擇器
     global_date = st.date_input("日期", datetime.date.today())
     court_count = st.number_input("場地數量", min_value=1, max_value=6, value=2)
 
 tab_list = st.tabs([f"🏟️ 場地 {i+1}" for i in range(court_count)])
 all_results = []
+draw_detected = False # 檢查是否有平手
 
 for i in range(court_count):
     cid = i + 1
@@ -42,16 +44,24 @@ for i in range(court_count):
         for g_idx, (a1, a2, b1, b2) in enumerate(sch, 1):
             cols = st.columns([2, 1, 0.5, 1, 2])
             cols[0].write(f"**{a1}/{a2}**")
-            s1 = cols[1].text_input("A", key=f"sA_{cid}_{g_idx}", label_visibility="collapsed")
+            s1_raw = cols[1].text_input("A", key=f"sA_{cid}_{g_idx}", label_visibility="collapsed")
             cols[2].write("-")
-            s2 = cols[3].text_input("B", key=f"sB_{cid}_{g_idx}", label_visibility="collapsed")
+            s2_raw = cols[3].text_input("B", key=f"sB_{cid}_{g_idx}", label_visibility="collapsed")
             cols[4].write(f"**{b1}/{b2}**")
             
-            if s1.strip() and s2.strip():
+            if s1_raw.strip() and s2_raw.strip():
+                s1 = int(s1_raw)
+                s2 = int(s2_raw)
+                
+                # 檢查平手
+                if s1 == s2:
+                    st.error(f"⚠️ 場地 {cid} 第 {g_idx} 場出現平分 ({s1}:{s2})，DUPR 不接受平手，請修正。")
+                    draw_detected = True
+                
                 all_results.append({
                     'matchType': 'D', 'scoreType': 'RALLY',
                     'event': f"{event_main}-C{cid}",
-                    'date': global_date.strftime("%m/%d/%Y"),
+                    'date': global_date.strftime("%Y-%m-%d"), # 修正：YYYY-MM-DD
                     'playerA1': p_data[a1]['n'], 'playerA1DuprId': p_data[a1]['id'],
                     'playerA2': p_data[a2]['n'], 'playerA2DuprId': p_data[a2]['id'],
                     'playerB1': p_data[b1]['n'], 'playerB1DuprId': p_data[b1]['id'],
@@ -61,31 +71,34 @@ for i in range(court_count):
                     'teamAGame4': '', 'teamBGame4': '', 'teamAGame5': '', 'teamBGame5': ''
                 })
 
-if all_results:
-    st.divider()
-    df = pd.DataFrame(all_results)
-    
-    # 修正重點 1: 使用 map 代替 applymap 以適應新版 Pandas
-    df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
-    
-    # 修正重點 2: 確保所有 DUPR 要求的 22 個欄位都存在且順序正確
-    columns_order = [
-        'matchType','scoreType','event','date',
-        'playerA1','playerA1DuprId','playerA2','playerA2DuprId',
-        'playerB1','playerB1DuprId','playerB2','playerB2DuprId',
-        'teamAGame1','teamBGame1','teamAGame2','teamBGame2',
-        'teamAGame3','teamBGame3','teamAGame4','teamBGame4','teamAGame5','teamBGame5'
-    ]
-    df = df.reindex(columns=columns_order).fillna('')
+st.divider()
 
-    # 修正重點 3: 使用標準 UTF-8 並移除 BOM 標頭，確保 DUPR 系統能正確解析標題列
-    csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
-    
-    st.download_button(
-        label="🚀 下載 DUPR 專用 CSV (相容新版 Pandas)",
-        data=csv_bytes,
-        file_name=f"DUPR_FINAL_{datetime.datetime.now().strftime('%m%d')}.csv",
-        mime="text/csv",
-        type="primary",
-        use_container_width=True
-    )
+if all_results:
+    if draw_detected:
+        st.warning("❌ 偵測到比賽平分，請修正比分後再下載，否則 DUPR 系統將退件。")
+    else:
+        df = pd.DataFrame(all_results)
+        # 清理空白
+        df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
+        
+        # 補齊 22 欄位順序
+        columns_order = [
+            'matchType','scoreType','event','date',
+            'playerA1','playerA1DuprId','playerA2','playerA2DuprId',
+            'playerB1','playerB1DuprId','playerB2','playerB2DuprId',
+            'teamAGame1','teamBGame1','teamAGame2','teamBGame2',
+            'teamAGame3','teamBGame3','teamAGame4','teamBGame4','teamAGame5','teamBGame5'
+        ]
+        df = df.reindex(columns=columns_order).fillna('')
+
+        # 匯出標準 UTF-8 (無 BOM)
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        
+        st.download_button(
+            label="🚀 下載 DUPR 匯入檔案 (已修正日期與平手檢查)",
+            data=csv_bytes,
+            file_name=f"DUPR_IMPORT_{datetime.datetime.now().strftime('%m%d_%H%M')}.csv",
+            mime="text/csv",
+            type="primary",
+            use_container_width=True
+        )
