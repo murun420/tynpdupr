@@ -25,7 +25,7 @@ st.title("🏓 TNYP DUPR 專業驗證錄入系統")
 
 with st.sidebar:
     st.header("⚙️ 設定")
-    event_main = st.text_input("活動名稱", value="TNYP Match")
+    event_main = st.text_input("活動名稱", value="TNYP CLUB DUPR NO.")
     global_date = st.date_input("日期", datetime.date.today())
     global_score_type = st.selectbox("計分方式", ["RALLY (落地得分)", "SIDEOUT (發球得分)"])
     score_type_val = "RALLY" if "RALLY" in global_score_type else "SIDEOUT"
