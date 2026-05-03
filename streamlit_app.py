@@ -13,9 +13,7 @@ SCHEDULE_7_DBL = [("G", "D", "F", "E"), ("B", "G", "C", "A"), ("D", "F", "E", "C
 SCHEDULE_6_DBL = [("A", "B", "C", "D"), ("E", "F", "A", "C"), ("B", "D", "E", "A"), ("C", "F", "B", "E"), ("D", "A", "C", "E"), ("B", "F", "D", "C"), ("A", "B", "E", "F"), ("C", "D", "A", "F"), ("B", "E", "D", "F"), ("A", "C", "B", "D"), ("E", "F", "A", "D"), ("B", "C", "E", "A"), ("D", "F", "B", "E"), ("A", "F", "C", "E"), ("B", "D", "A", "C")]
     ("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None),
     ("A", None, "C", None), ("B", None, "E", None), ("A", None, "D", None), ("C", None, "E", None), ("B", None, "D", None),
-    ("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None),
-    ("A", None, "C", None), ("B", None, "E", None), ("A", None, "D", None), ("C", None, "E", None), ("B", None, "D", None),
-]
+    
 
 # DUPR 標準欄位
 DUPR_COLS = ['matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId','playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1','teamAGame2','teamBGame2','teamAGame3','teamBGame3','teamAGame4','teamBGame4','teamAGame5','teamBGame5']
