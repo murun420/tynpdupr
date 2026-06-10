@@ -6,28 +6,59 @@ import datetime
 st.set_page_config(page_title="TNYP DUPR 專業驗證錄入", page_icon="🏓", layout="wide")
 
 # ==========================================
-# 賽程邏輯定義 (請確保名稱與下方調用一致)
+# 賽程邏輯定義 (落地得分 21場 vs 發球得分 14場)
 # ==========================================
-SCHEDULE_8_DBL = [("A", "G", "D", "C"),("E", "H", "F", "B"),("C", "F", "D", "H"),("A", "E", "G", "B"),("G", "D", "E", "F"),("C", "A", "H", "B"),("G", "F", "D", "A"),("E", "B", "C", "H"),("G", "F", "B", "C"),("A", "H", "D", "E"),("B", "C", "D", "F"),("G", "E", "H", "A"),("H", "E", "D", "B"),("C", "G", "F", "A"),("G", "H", "E", "C"),("B", "A", "D", "F"),("H", "B", "G", "A"),("C", "F", "E", "D"),("B", "G", "F", "H"),("A", "E", "C", "D"),("E", "C", "B", "D")]
-SCHEDULE_7_DBL = [("F", "D", "B", "E"),("C", "G", "A", "B"),("A", "F", "E", "D"),("G", "F", "C", "E"),("B", "D", "A", "C"),("G", "A", "F", "E"),("C", "B", "D", "G"),("E", "A", "D", "C"),("F", "A", "B", "G"),("E", "C", "B", "F"),("D", "A", "G", "E"),("C", "F", "D", "B"),("G", "C", "A", "E"),("F", "B", "G", "D"),("A", "C", "E", "B"),("D", "C", "G", "F"),("B", "A", "E", "G"),("F", "C", "D", "A"),("E", "F", "G", "B"),("D", "E", "B", "C"),("A", "G", "F", "D")]
-SCHEDULE_6_DBL = [("A", "B", "C", "D"), ("E", "F", "A", "C"), ("B", "D", "E", "A"), ("C", "F", "B", "E"), ("D", "A", "C", "E"), ("B", "F", "D", "C"), ("A", "B", "E", "F"), ("C", "D", "A", "F"), ("B", "E", "D", "F"), ("A", "C", "B", "D"), ("E", "F", "A", "D"), ("B", "C", "E", "A"), ("D", "F", "B", "E"), ("A", "F", "C", "E"), ("B", "D", "A", "C")]
-SCHEDULE_5_SGL = [
-    ("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None),
-    ("A", None, "C", None), ("B", None, "D", None), ("C", None, "E", None), ("A", None, "D", None), ("B", None, "E", None),
-    ("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None),
-    ("A", None, "C", None), ("B", None, "D", None), ("C", None, "E", None), ("A", None, "D", None), ("B", None, "E", None)
+
+# --- 8 人制雙打 ---
+# 落地得分 (Rally) - 21 場 (基於原本 19 場新增 2 場)
+SCHEDULE_8_RALLY = [
+    ("A", "B", "C", "D"), ("E", "F", "G", "H"), ("A", "E", "B", "F"), ("C", "G", "D", "H"), 
+    ("B", "D", "F", "H"), ("A", "C", "E", "G"), ("E", "H", "A", "D"), ("F", "G", "B", "C"), 
+    ("A", "F", "C", "H"), ("B", "E", "D", "G"), ("B", "H", "D", "F"), ("A", "G", "C", "E"), 
+    ("A", "H", "D", "E"), ("C", "F", "B", "G"), ("A", "B", "E", "F"), ("G", "H", "C", "D"), 
+    ("E", "G", "B", "D"), ("F", "H", "A", "C"), ("A", "D", "F", "G"), ("C", "E", "B", "H"), 
+    ("A", "G", "D", "F")
 ]
- 
-# DUPR 標準欄位
+# 發球得分 (Sideout) - 14 場 (擷取前 14 場)
+SCHEDULE_8_SIDEOUT = [
+    ("A", "B", "C", "D"), ("E", "F", "G", "H"), ("A", "E", "B", "F"), ("C", "G", "D", "H"), 
+    ("B", "D", "F", "H"), ("A", "C", "E", "G"), ("E", "H", "A", "D"), ("F", "G", "B", "C"), 
+    ("A", "F", "C", "H"), ("B", "E", "D", "G"), ("B", "H", "D", "F"), ("A", "G", "C", "E"), 
+    ("A", "H", "D", "E"), ("C", "F", "B", "G")
+]
+
+# --- 7 人制雙打 ---
+# 落地得分 (Rally) - 21 場
+SCHEDULE_7_RALLY = [
+    ("A", "B", "C", "D"), ("E", "F", "A", "G"), ("B", "C", "D", "E"), ("A", "C", "F", "G"), 
+    ("A", "F", "B", "E"), ("B", "D", "E", "G"), ("C", "F", "D", "G"), ("A", "E", "B", "F"), 
+    ("A", "D", "C", "G"), ("C", "E", "B", "G"), ("E", "G", "A", "F"), ("B", "C", "D", "F"), 
+    ("A", "D", "B", "E"), ("C", "F", "B", "G"), ("A", "B", "E", "F"), ("G", "D", "C", "E"), 
+    ("E", "G", "B", "D"), ("F", "A", "C", "G"), ("A", "D", "F", "G"), ("B", "E", "C", "F"), 
+    ("A", "G", "D", "E")
+]
+# 發球得分 (Sideout) - 14 場
+SCHEDULE_7_SIDEOUT = [
+    ("A", "B", "C", "D"), ("E", "F", "A", "G"), ("B", "C", "D", "E"), ("A", "C", "F", "G"), 
+    ("A", "F", "B", "E"), ("B", "D", "E", "G"), ("C", "F", "D", "G"), ("A", "E", "B", "F"), 
+    ("A", "D", "C", "G"), ("C", "E", "B", "G"), ("E", "G", "A", "F"), ("B", "C", "D", "F"), 
+    ("A", "D", "B", "E"), ("C", "F", "B", "G")
+]
+
+# 6 人與 5 人維持原本邏輯 (可視需求調整)
+SCHEDULE_6_DBL = [("A", "B", "C", "D"), ("E", "F", "A", "C"), ("B", "E", "D", "F"), ("A", "D", "B", "F"), ("C", "E", "A", "B"), ("D", "F", "C", "E"), ("A", "F", "B", "D"), ("C", "D", "A", "E"), ("B", "C", "E", "F"), ("A", "D", "B", "E"), ("C", "F", "A", "B"), ("B", "D", "E", "F"), ("A", "F", "C", "D"), ("B", "E", "A", "D"), ("C", "E", "B", "F")]
+SCHEDULE_5_SGL = [("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None), ("A", None, "C", None), ("B", None, "D", None), ("C", None, "E", None), ("A", None, "D", None), ("B", None, "E", None), ("B", None, "A", None), ("D", None, "C", None), ("A", None, "E", None), ("C", None, "B", None), ("E", None, "D", None), ("C", None, "A", None), ("D", None, "B", None), ("E", None, "C", None), ("D", None, "A", None), ("E", None, "B", None)]
+
 DUPR_COLS = ['matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId','playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1','teamAGame2','teamBGame2','teamAGame3','teamBGame3','teamAGame4','teamBGame4','teamAGame5','teamBGame5']
 
 st.title("🏓 TNYP DUPR 專業驗證錄入系統")
 
 with st.sidebar:
-    st.header("⚙️ 設定")
-    event_main = st.text_input("活動名稱", value="TNYP CLUB DUPR NO.")
+    st.header("⚙️ 全域設定")
+    event_main = st.text_input("活動名稱", value="TNYP Match")
     global_date = st.date_input("日期", datetime.date.today())
-    global_score_type = st.selectbox("計分方式", ["RALLY (落地得分)", "SIDEOUT (發球得分)"])
+    # 決定核心邏輯的計分方式
+    global_score_type = st.selectbox("計分方式", ["RALLY (落地得分 - 21場)", "SIDEOUT (發球得分 - 14場)"])
     score_type_val = "RALLY" if "RALLY" in global_score_type else "SIDEOUT"
     court_count = st.number_input("場地數量", min_value=1, max_value=6, value=2)
 
@@ -37,15 +68,17 @@ all_matches_combined = []
 for i in range(court_count):
     cid = i + 1
     with tab_list[i]:
-        # 賽制選擇
         mode = st.selectbox(f"場地 {cid} 賽制", 
                             ["雙打 - 8人制", "雙打 - 7人制", "雙打 - 6人制", "單打 - 5人制 (20場)"], 
                             key=f"mode_sel_{cid}")
         
+        # 根據選擇的人數與計分方式，決定最終的賽程表
         if "8人制" in mode:
-            p_labels, sch, m_type = ['A','B','C','D','E','F','G','H'], SCHEDULE_8_DBL, "D"
+            p_labels, m_type = ['A','B','C','D','E','F','G','H'], "D"
+            sch = SCHEDULE_8_RALLY if score_type_val == "RALLY" else SCHEDULE_8_SIDEOUT
         elif "7人制" in mode:
-            p_labels, sch, m_type = ['A','B','C','D','E','F','G'], SCHEDULE_7_DBL, "D"
+            p_labels, m_type = ['A','B','C','D','E','F','G'], "D"
+            sch = SCHEDULE_7_RALLY if score_type_val == "RALLY" else SCHEDULE_7_SIDEOUT
         elif "6人制" in mode:
             p_labels, sch, m_type = ['A','B','C','D','E','F'], SCHEDULE_6_DBL, "D"
         else:
@@ -65,7 +98,7 @@ for i in range(court_count):
                 p_map[l] = {"n": n, "id": did}
 
         # 比分錄入
-        st.subheader(f"🎯 比分錄入")
+        st.subheader(f"🎯 比分錄入 (共 {len(sch)} 場)")
         court_data = []
         c_error = False
 
