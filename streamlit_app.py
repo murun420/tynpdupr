@@ -11,7 +11,7 @@ st.set_page_config(page_title="TNYP DUPR 專業驗證錄入", page_icon="🏓", 
 
 # --- 8 人制雙打 ---
 # 落地得分 (Rally) - 21 場 (基於原本 19 場新增 2 場)
-SCHEDULE_8_DBL = [
+SCHEDULE_8_RALLY = [
   ("A", "G", "D", "C"),("E", "H", "F", "B"),("C", "F", "D", "H"),("A", "E", "G", "B"),
   ("G", "D", "E", "F"),("C", "A", "H", "B"),("G", "F", "D", "A"),("E", "B", "C", "H"),
   ("G", "F", "B", "C"),("A", "H", "D", "E"),("B", "C", "D", "F"),("G", "E", "H", "A"),
@@ -30,7 +30,7 @@ SCHEDULE_8_SIDEOUT = [
 
 # --- 7 人制雙打 ---
 # 落地得分 (Rally) - 21 場
-SCHEDULE_7_DBL = [
+SCHEDULE_7_RALLY = [
     ("F", "D", "B", "E"),("C", "G", "A", "B"),("A", "F", "E", "D"),("G", "F", "C", "E"),
     ("B", "D", "A", "C"),("G", "A", "F", "E"),("C", "B", "D", "G"),("E", "A", "D", "C"),
     ("F", "A", "B", "G"),("E", "C", "B", "F"),("D", "A", "G", "E"),("C", "F", "D", "B"),
