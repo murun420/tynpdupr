@@ -50,7 +50,17 @@ SCHEDULE_7_SIDEOUT = [
 SCHEDULE_6_DBL = [("A", "B", "C", "D"), ("E", "F", "A", "C"), ("B", "E", "D", "F"), ("A", "D", "B", "F"), ("C", "E", "A", "B"), ("D", "F", "C", "E"), ("A", "F", "B", "D"), ("C", "D", "A", "E"), ("B", "C", "E", "F"), ("A", "D", "B", "E"), ("C", "F", "A", "B"), ("B", "D", "E", "F"), ("A", "F", "C", "D"), ("B", "E", "A", "D"), ("C", "E", "B", "F")]
 SCHEDULE_5_SGL = [("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None), ("A", None, "C", None), ("B", None, "D", None), ("C", None, "E", None), ("A", None, "D", None), ("B", None, "E", None), ("B", None, "A", None), ("D", None, "C", None), ("A", None, "E", None), ("C", None, "B", None), ("E", None, "D", None), ("C", None, "A", None), ("D", None, "B", None), ("E", None, "C", None), ("D", None, "A", None), ("E", None, "B", None)]
 
-DUPR_COLS = ['matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId','playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1','teamAGame2','teamBGame2','teamAGame3','teamBGame3','teamAGame4','teamBGame4','teamAGame5','teamBGame5']
+# 更新：完全對齊 single-match-import.csv 的所有欄位與順序
+DUPR_COLS = [
+    'matchType', 'event', 'date', 
+    'playerA1', 'playerA1DuprId', 'playerA1ExternalId', 
+    'playerA2', 'playerA2DuprId', 'playerA2ExternalId', 
+    'playerB1', 'playerB1DuprId', 'playerB1ExternalId', 
+    'playerB2', 'playerB2DuprId', 'playerB2ExternalId', 
+    'teamAGame1', 'teamBGame1', 'teamAGame2', 'teamBGame2', 
+    'teamAGame3', 'teamBGame3', 'teamAGame4', 'teamBGame4', 
+    'teamAGame5', 'teamBGame5', 'location', 'scoreType'
+]
 
 st.title("🏓 TNYP DUPR 專業驗證錄入系統")
 
@@ -58,6 +68,10 @@ with st.sidebar:
     st.header("⚙️ 全域設定")
     event_main = st.text_input("活動名稱", value="TNYP Match")
     global_date = st.date_input("日期", datetime.date.today())
+    
+    # 新增：設定全域的比賽地址 Location
+    global_location = st.text_input("比賽地址 (Location)", value="", placeholder="例如: 台北市某某球館")
+    
     # 決定核心邏輯的計分方式
     global_score_type = st.selectbox("計分方式", ["RALLY (落地得分 - 21場)", "SIDEOUT (發球得分 - 14場)"])
     score_type_val = "RALLY" if "RALLY" in global_score_type else "SIDEOUT"
@@ -122,13 +136,15 @@ for i in range(court_count):
                             st.error(f"第 {g_idx} 場平分")
                             c_error = True
                         
+                        # 更新：包含新增的 location 與各球員的 ExternalId
                         entry = {
                             'matchType': m_type, 'scoreType': score_type_val,
                             'event': f"{event_main}-C{cid}", 'date': global_date.strftime("%Y-%m-%d"),
-                            'playerA1': p_map[a1]['n'], 'playerA1DuprId': p_map[a1]['id'],
-                            'playerA2': p_map[a2]['n'] if a2 else '', 'playerA2DuprId': p_map[a2]['id'] if a2 else '',
-                            'playerB1': p_map[b1]['n'], 'playerB1DuprId': p_map[b1]['id'],
-                            'playerB2': p_map[b2]['n'] if b2 else '', 'playerB2DuprId': p_map[b2]['id'] if b2 else '',
+                            'location': global_location,
+                            'playerA1': p_map[a1]['n'], 'playerA1DuprId': p_map[a1]['id'], 'playerA1ExternalId': '',
+                            'playerA2': p_map[a2]['n'] if a2 else '', 'playerA2DuprId': p_map[a2]['id'] if a2 else '', 'playerA2ExternalId': '',
+                            'playerB1': p_map[b1]['n'], 'playerB1DuprId': p_map[b1]['id'], 'playerB1ExternalId': '',
+                            'playerB2': p_map[b2]['n'] if b2 else '', 'playerB2DuprId': p_map[b2]['id'] if b2 else '', 'playerB2ExternalId': '',
                             'teamAGame1': s1, 'teamBGame1': s2,
                             'teamAGame2': '', 'teamBGame2': '', 'teamAGame3': '', 'teamBGame3': '',
                             'teamAGame4': '', 'teamBGame4': '', 'teamAGame5': '', 'teamBGame5': ''
