@@ -1,2 +1,4 @@
-Plaintext
 streamlit>=1.37.0
+starlette<0.40.0
+pandas
+numpy
