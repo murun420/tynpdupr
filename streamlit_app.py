@@ -50,7 +50,17 @@ SCHEDULE_7_SIDEOUT = [
 SCHEDULE_6_DBL = [("A", "B", "C", "D"), ("E", "F", "A", "C"), ("B", "D", "E", "A"), ("C", "F", "B", "E"), ("D", "A", "C", "E"), ("B", "F", "D", "C"), ("A", "B", "E", "F"), ("C", "D", "A", "F"), ("B", "E", "D", "F"), ("A", "C", "B", "D"), ("E", "F", "A", "D"), ("B", "C", "E", "A"), ("D", "F", "B", "E"), ("A", "F", "C", "E"),("B", "D", "A", "C")]
 SCHEDULE_5_SGL = [("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None), ("A", None, "C", None), ("B", None, "D", None), ("C", None, "E", None), ("A", None, "D", None), ("B", None, "E", None), ("B", None, "A", None), ("D", None, "C", None), ("A", None, "E", None), ("C", None, "B", None), ("E", None, "D", None), ("C", None, "A", None), ("D", None, "B", None), ("E", None, "C", None), ("D", None, "A", None), ("E", None, "B", None)]
 
-DUPR_COLS = ['matchType','scoreType','event','date','playerA1','playerA1DuprId','playerA2','playerA2DuprId','playerB1','playerB1DuprId','playerB2','playerB2DuprId','teamAGame1','teamBGame1','teamAGame2','teamBGame2','teamAGame3','teamBGame3','teamAGame4','teamBGame4','teamAGame5','teamBGame5']
+# 依據最新官方樣本修改的欄位清單與順序
+DUPR_COLS = [
+    'matchType', 'event', 'date', 
+    'playerA1', 'playerA1DuprId', 'playerA1ExternalId', 
+    'playerA2', 'playerA2DuprId', 'playerA2ExternalId', 
+    'playerB1', 'playerB1DuprId', 'playerB1ExternalId', 
+    'playerB2', 'playerB2DuprId', 'playerB2ExternalId', 
+    'teamAGame1', 'teamBGame1', 'teamAGame2', 'teamBGame2', 'teamAGame3', 'teamBGame3', 
+    'teamAGame4', 'teamBGame4', 'teamAGame5', 'teamBGame5', 
+    'location', 'scoreType'
+]
 
 st.title("🏓 TNYP DUPR 專業驗證錄入系統")
 
@@ -58,6 +68,7 @@ with st.sidebar:
     st.header("⚙️ 全域設定")
     event_main = st.text_input("活動名稱", value="TNYP Match")
     global_date = st.date_input("日期", datetime.date.today())
+    global_location = st.text_input("場地位置 (Location)", value="")
     # 決定核心邏輯的計分方式
     global_score_type = st.selectbox("計分方式", ["RALLY (落地得分 - 21場)", "SIDEOUT (發球得分 - 14場)"])
     score_type_val = "RALLY" if "RALLY" in global_score_type else "SIDEOUT"
@@ -123,15 +134,40 @@ for i in range(court_count):
                             c_error = True
                         
                         entry = {
-                            'matchType': m_type, 'scoreType': score_type_val,
-                            'event': f"{event_main}-C{cid}", 'date': global_date.strftime("%Y-%m-%d"),
-                            'playerA1': p_map[a1]['n'], 'playerA1DuprId': p_map[a1]['id'],
-                            'playerA2': p_map[a2]['n'] if a2 else '', 'playerA2DuprId': p_map[a2]['id'] if a2 else '',
-                            'playerB1': p_map[b1]['n'], 'playerB1DuprId': p_map[b1]['id'],
-                            'playerB2': p_map[b2]['n'] if b2 else '', 'playerB2DuprId': p_map[b2]['id'] if b2 else '',
+                            'matchType': m_type, 
+                            'event': f"{event_main}-C{cid}", 
+                            'date': global_date.strftime("%Y-%m-%d"),
+                            
+                            # Player A1
+                            'playerA1': p_map[a1]['n'], 
+                            'playerA1DuprId': p_map[a1]['id'], 
+                            'playerA1ExternalId': '',
+                            
+                            # Player A2
+                            'playerA2': p_map[a2]['n'] if a2 else '', 
+                            'playerA2DuprId': p_map[a2]['id'] if a2 else '', 
+                            'playerA2ExternalId': '',
+                            
+                            # Player B1
+                            'playerB1': p_map[b1]['n'], 
+                            'playerB1DuprId': p_map[b1]['id'], 
+                            'playerB1ExternalId': '',
+                            
+                            # Player B2
+                            'playerB2': p_map[b2]['n'] if b2 else '', 
+                            'playerB2DuprId': p_map[b2]['id'] if b2 else '', 
+                            'playerB2ExternalId': '',
+                            
+                            # Scores
                             'teamAGame1': s1, 'teamBGame1': s2,
-                            'teamAGame2': '', 'teamBGame2': '', 'teamAGame3': '', 'teamBGame3': '',
-                            'teamAGame4': '', 'teamBGame4': '', 'teamAGame5': '', 'teamBGame5': ''
+                            'teamAGame2': '', 'teamBGame2': '', 
+                            'teamAGame3': '', 'teamBGame3': '',
+                            'teamAGame4': '', 'teamBGame4': '', 
+                            'teamAGame5': '', 'teamBGame5': '',
+                            
+                            # New fields
+                            'location': global_location,
+                            'scoreType': score_type_val
                         }
                         court_data.append(entry)
                         all_matches_combined.append(entry)
