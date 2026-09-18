@@ -47,9 +47,9 @@ SCHEDULE_7_SIDEOUT = [
 ]
 
 # 6 人與 5 人維持原本邏輯 (可視需求調整)
-SCHEDULE_6_DBL = [("A", "B", "C", "D"), ("E", "F", "A", "C"), ("B", "E", "D", "F"), ("A", "D", "B", "F"), ("C", "E", "A", "B"), ("D", "F", "C", "E"), ("A", "F", "B", "D"), ("C", "D", "A", "E"), ("B", "C", "E", "F"), ("A", "D", "B", "E"), ("C", "F", "A", "B"), ("B", "D", "E", "F"), ("A", "F", "C", "D"), ("B", "E", "A", "D"), ("C", "E", "B", "F")]
+SCHEDULE_6_DBL = [("A", "B", "C", "D"), ("E", "F", "A", "C"), ("B", "D", "E", "A"), ("A", "D", "B", "F"), ("C", "F" , "B", "E"), ("D", "A" , "C", "E"), ("B", "F", "D", "C"), ("A", "B", "E", "F"), ("C", "D", "A", "F"), ("B", "E", "D", "F"), ("A", "C", "B", "D"), ("E", "F", "A", "D"), ("B", "C", "E", "A"), ("D", "F", "B", "E"), ("A", "F", "C", "E"),("B", "D", "A", "C")]
 SCHEDULE_5_SGL = [("A", None, "B", None), ("C", None, "D", None), ("E", None, "A", None), ("B", None, "C", None), ("D", None, "E", None), ("A", None, "C", None), ("B", None, "D", None), ("C", None, "E", None), ("A", None, "D", None), ("B", None, "E", None), ("B", None, "A", None), ("D", None, "C", None), ("A", None, "E", None), ("C", None, "B", None), ("E", None, "D", None), ("C", None, "A", None), ("D", None, "B", None), ("E", None, "C", None), ("D", None, "A", None), ("E", None, "B", None)]
-
+, 
 # 更新：完全對齊 single-match-import.csv 的所有欄位與順序
 DUPR_COLS = [
     'matchType', 'event', 'date', 
